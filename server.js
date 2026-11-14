@@ -10,11 +10,11 @@ const port = Number(process.env.PORT || 3001);
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: "1mb" }));
 
-// Connect Manish AI to Ollama
-const client = process.env.OLLAMA_API_KEY
+// Connect Manish AI to Groq
+const client = process.env.GROQ_API_KEY
   ? new OpenAI({
-      apiKey: process.env.OLLAMA_API_KEY,
-      baseURL: "https://ollama.com/v1"
+      apiKey: process.env.GROQ_API_KEY,
+      baseURL: "https://api.groq.com/openai/v1"
     })
   : null;
 
@@ -34,7 +34,7 @@ app.post("/api/chat", async (req, res) => {
   try {
     if (!client) {
       return res.status(503).json({
-        error: "Ollama API is not configured."
+        error: "Groq API is not configured."
       });
     }
 
@@ -59,7 +59,7 @@ app.post("/api/chat", async (req, res) => {
     });
 
     const response = await client.chat.completions.create({
-      model: process.env.OLLAMA_MODEL || "deepseek-v4.1-flash",
+      model: process.env.GROQ_MODEL || "openai/gpt-oss-20b",
       messages: [
         { role: "system", content: systemPrompt },
         ...safeMessages
@@ -81,7 +81,7 @@ app.post("/api/chat", async (req, res) => {
 
     res.status(status).json({
       error: status === 401
-        ? "Ollama API key was rejected. Check your Render environment variable."
+        ? "Groq API key was rejected. Check your Render environment variable."
         : "Manish had trouble answering. Please try again."
     });
   }
