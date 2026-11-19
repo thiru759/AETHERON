@@ -4,9 +4,15 @@ import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, "dist");
 
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true }));
 app.use(express.json({ limit: "1mb" }));
@@ -60,7 +66,6 @@ async function requireUser(req, res, next) {
 
     if (!token) {
       console.error("Authentication failed: No bearer token received.");
-
       return res.status(401).json({
         error: "Please sign in first."
       });
@@ -68,7 +73,6 @@ async function requireUser(req, res, next) {
 
     const { data, error } = await supabase.auth.getUser(token);
 
-    // Diagnostic logging: never log the actual access token.
     if (error || !data?.user) {
       console.error(
         "Token validation failed:",
@@ -100,7 +104,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-// Retrieve only the signed-in user's memories
+// Retrieve signed-in user's memories
 app.get("/api/memories", requireUser, async (req, res) => {
   try {
     const { data, error } = await supabase
@@ -111,18 +115,14 @@ app.get("/api/memories", requireUser, async (req, res) => {
       .limit(30);
 
     if (error) throw error;
-
     res.json({ memories: data || [] });
   } catch (error) {
     console.error("Memory retrieval failed:", error.message);
-
-    res.status(500).json({
-      error: "Could not retrieve memories."
-    });
+    res.status(500).json({ error: "Could not retrieve memories." });
   }
 });
 
-// Save a memory explicitly requested by the signed-in user
+// Save a memory
 app.post("/api/memories", requireUser, async (req, res) => {
   try {
     const { memory_key, memory_value } = req.body || {};
@@ -154,29 +154,20 @@ app.post("/api/memories", requireUser, async (req, res) => {
       .single();
 
     if (error) throw error;
-
-    res.json({
-      success: true,
-      memory: data
-    });
+    res.json({ success: true, memory: data });
   } catch (error) {
     console.error("Memory save failed:", error.message);
-
-    res.status(500).json({
-      error: "Could not save this memory."
-    });
+    res.status(500).json({ error: "Could not save this memory." });
   }
 });
 
-// Delete one of the signed-in user's memories
+// Delete a memory
 app.delete("/api/memories/:id", requireUser, async (req, res) => {
   try {
     const id = Number(req.params.id);
 
     if (!Number.isSafeInteger(id) || id < 1) {
-      return res.status(400).json({
-        error: "Invalid memory ID."
-      });
+      return res.status(400).json({ error: "Invalid memory ID." });
     }
 
     const { error } = await supabase
@@ -186,18 +177,14 @@ app.delete("/api/memories/:id", requireUser, async (req, res) => {
       .eq("user_id", req.user.id);
 
     if (error) throw error;
-
     res.json({ success: true });
   } catch (error) {
     console.error("Memory deletion failed:", error.message);
-
-    res.status(500).json({
-      error: "Could not delete this memory."
-    });
+    res.status(500).json({ error: "Could not delete this memory." });
   }
 });
 
-// Authenticated AI chat with relevant saved memories
+// Authenticated AI chat
 app.post("/api/chat", requireUser, async (req, res) => {
   try {
     if (!groq) {
@@ -289,7 +276,20 @@ ${memoryText ? `User-approved memories:\n${memoryText}` : ""}
   }
 });
 
+// Serve the built frontend
+app.use(express.static(distPath));
+
+app.get("*", (req, res, next) => {
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "API route not found." });
+  }
+
+  res.sendFile(path.join(distPath, "index.html"), (error) => {
+    if (error) next(error);
+  });
+});
+
 // Start server
 app.listen(port, () => {
-  console.log(`Manish AI backend listening on port ${port}`);
+  console.log(`Manish AI listening on port ${port}`);
 });
