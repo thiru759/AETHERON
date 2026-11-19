@@ -59,6 +59,8 @@ async function requireUser(req, res, next) {
       : "";
 
     if (!token) {
+      console.error("Authentication failed: No bearer token received.");
+
       return res.status(401).json({
         error: "Please sign in first."
       });
@@ -66,7 +68,13 @@ async function requireUser(req, res, next) {
 
     const { data, error } = await supabase.auth.getUser(token);
 
+    // Diagnostic logging: never log the actual access token.
     if (error || !data?.user) {
+      console.error(
+        "Token validation failed:",
+        error?.message || "No user returned by Supabase"
+      );
+
       return res.status(401).json({
         error: "Your login session is invalid. Please sign in again."
       });
@@ -75,11 +83,15 @@ async function requireUser(req, res, next) {
     req.user = data.user;
     next();
   } catch (error) {
-    console.error("Authentication error:", error.message);
-    res.status(401).json({ error: "Authentication failed." });
+    console.error("Authentication error:", error?.message || error);
+
+    return res.status(401).json({
+      error: "Authentication failed."
+    });
   }
 }
 
+// Backend health check
 app.get("/api/health", (_req, res) => {
   res.json({
     ok: true,
@@ -103,7 +115,10 @@ app.get("/api/memories", requireUser, async (req, res) => {
     res.json({ memories: data || [] });
   } catch (error) {
     console.error("Memory retrieval failed:", error.message);
-    res.status(500).json({ error: "Could not retrieve memories." });
+
+    res.status(500).json({
+      error: "Could not retrieve memories."
+    });
   }
 });
 
@@ -140,10 +155,16 @@ app.post("/api/memories", requireUser, async (req, res) => {
 
     if (error) throw error;
 
-    res.json({ success: true, memory: data });
+    res.json({
+      success: true,
+      memory: data
+    });
   } catch (error) {
     console.error("Memory save failed:", error.message);
-    res.status(500).json({ error: "Could not save this memory." });
+
+    res.status(500).json({
+      error: "Could not save this memory."
+    });
   }
 });
 
@@ -153,7 +174,9 @@ app.delete("/api/memories/:id", requireUser, async (req, res) => {
     const id = Number(req.params.id);
 
     if (!Number.isSafeInteger(id) || id < 1) {
-      return res.status(400).json({ error: "Invalid memory ID." });
+      return res.status(400).json({
+        error: "Invalid memory ID."
+      });
     }
 
     const { error } = await supabase
@@ -167,7 +190,10 @@ app.delete("/api/memories/:id", requireUser, async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error("Memory deletion failed:", error.message);
-    res.status(500).json({ error: "Could not delete this memory." });
+
+    res.status(500).json({
+      error: "Could not delete this memory."
+    });
   }
 });
 
@@ -263,7 +289,7 @@ ${memoryText ? `User-approved memories:\n${memoryText}` : ""}
   }
 });
 
+// Start server
 app.listen(port, () => {
   console.log(`Manish AI backend listening on port ${port}`);
 });
-
