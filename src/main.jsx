@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
 import {
   Bot, Plus, Send, Sun, Moon, Menu, X, Sparkles,
-  MessageSquare, Trash2, Globe2, LogOut, User
+  MessageSquare, Trash2, Globe2, LogOut
 } from "lucide-react";
 import "../styles.css";
 
@@ -15,10 +15,11 @@ const supabase = SUPABASE_URL && SUPABASE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_KEY)
   : null;
 
+// Keep your existing backend address.
 const API_URL = "https://manish-ai.onrender.com";
 
 const WELCOME =
-  "Hi! I'm Manish AI. 👋 Ask me anything, and let's figure it out together!";
+  "Hi! I'm AETHERON AI. 👋 Ask me anything, and let's figure it out together!";
 
 const starterPrompts = [
   { icon: "✦", title: "Explain a concept", text: "Explain a difficult science concept in simple words." },
@@ -59,6 +60,8 @@ function App() {
   const textareaRef = useRef(null);
 
   const activeChat = chats.find(c => c.id === activeId) || chats[0];
+
+  // Keep the old storage key so existing conversations remain available.
   const storageKey = user ? `manish-chats-${user.id}` : null;
 
   // Check the existing Supabase login session.
@@ -123,6 +126,7 @@ function App() {
 
   async function handleAuth(event) {
     event.preventDefault();
+
     if (!supabase) {
       setAuthNotice("Supabase settings are missing. Check your GitHub Actions variables.");
       return;
@@ -277,7 +281,7 @@ function App() {
         ]
       }));
     } catch (error) {
-      setNotice(error.message || "Could not connect to Manish AI.");
+      setNotice(error.message || "Could not connect to AETHERON AI.");
     } finally {
       setLoading(false);
       textareaRef.current?.focus();
@@ -287,13 +291,13 @@ function App() {
   const displayName =
     user?.user_metadata?.full_name ||
     user?.email ||
-    "Manish AI user";
+    "AETHERON AI user";
 
   if (authLoading) {
     return (
       <div className="app dark" style={centerStyle}>
         <Bot size={38} />
-        <p>Loading Manish AI...</p>
+        <p>Loading AETHERON AI...</p>
       </div>
     );
   }
@@ -308,11 +312,11 @@ function App() {
           </div>
 
           <h1 style={{ marginBottom: 6 }}>
-            Manish <span style={{ color: "#a78bfa" }}>AI</span>
+            AETHERON <span style={{ color: "#a78bfa" }}>AI</span>
           </h1>
 
           <p style={{ color: "#a1a1aa", marginTop: 0 }}>
-            Your everyday AI companion
+            Intelligence Beyond Limits
           </p>
 
           <h2 style={{ marginTop: 28 }}>
@@ -321,7 +325,7 @@ function App() {
 
           <p style={{ color: "#a1a1aa", fontSize: 14 }}>
             {authMode === "signup"
-              ? "Sign up to start using Manish AI."
+              ? "Sign up to start using AETHERON AI."
               : "Log in to continue your conversations."}
           </p>
 
@@ -414,8 +418,8 @@ function App() {
         <div className="brand-row">
           <div className="brand-icon"><Bot size={21} /></div>
           <div>
-            <div className="brand-name">Manish <span>AI</span></div>
-            <div className="brand-caption">Your AI companion</div>
+            <div className="brand-name">AETHERON <span>AI</span></div>
+            <div className="brand-caption">Intelligence Beyond Limits</div>
           </div>
           <button
             className="icon-btn mobile-close"
@@ -492,12 +496,12 @@ function App() {
 
             <div className="mobile-brand">
               <div className="brand-icon"><Bot size={18} /></div>
-              <strong>Manish <span>AI</span></strong>
+              <strong>AETHERON <span>AI</span></strong>
             </div>
 
             <div className="model-chip">
               <span className="status-dot" />
-              Manish Assistant
+              AETHERON Assistant
               <span className="chip-chevron">▾</span>
             </div>
           </div>
@@ -565,7 +569,7 @@ function App() {
 
                   <div className="message-content">
                     <div className="message-author">
-                      {message.role === "assistant" ? "Manish AI" : "You"}
+                      {message.role === "assistant" ? "AETHERON AI" : "You"}
                     </div>
                     <div className="message-bubble">{message.content}</div>
                   </div>
@@ -580,7 +584,7 @@ function App() {
                 <div className="message-row assistant">
                   <div className="message-avatar"><Bot size={17} /></div>
                   <div className="message-content">
-                    <div className="message-author">Manish AI</div>
+                    <div className="message-author">AETHERON AI</div>
                     <div className="typing">
                       <i /><i /><i /><span>Thinking...</span>
                     </div>
@@ -613,9 +617,9 @@ function App() {
                   sendMessage();
                 }
               }}
-              placeholder="Message Manish..."
+              placeholder="Message AETHERON..."
               rows={1}
-              aria-label="Message Manish AI"
+              aria-label="Message AETHERON AI"
             />
 
             <div className="composer-bottom">
@@ -636,7 +640,7 @@ function App() {
           </form>
 
           <div className="disclaimer">
-            Manish AI can make mistakes. Double-check important information.
+            AETHERON AI can make mistakes. Double-check important information.
           </div>
         </div>
       </main>
