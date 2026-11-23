@@ -2,6 +2,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { createClient } from "@supabase/supabase-js";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 import {
   Bot, Plus, Send, Sun, Moon, Menu, X, Sparkles,
   MessageSquare, Trash2, Globe2, LogOut
@@ -34,6 +37,18 @@ function newChat() {
     title: "New chat",
     messages: [{ role: "assistant", content: WELCOME }]
   };
+}
+
+// Render Markdown and mathematical equations.
+function FormattedMessage({ content }) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={[remarkMath]}
+      rehypePlugins={[rehypeKatex]}
+    >
+      {content || ""}
+    </ReactMarkdown>
+  );
 }
 
 function App() {
@@ -571,7 +586,9 @@ function App() {
                     <div className="message-author">
                       {message.role === "assistant" ? "AETHERON AI" : "You"}
                     </div>
-                    <div className="message-bubble">{message.content}</div>
+                    <div className="message-bubble">
+                      <FormattedMessage content={message.content} />
+                    </div>
                   </div>
 
                   {message.role === "user" && (
